@@ -17,31 +17,21 @@ from sensor_msgs.msg import LaserScan
 from math import atan2
 
 
-
-#msg_pub = rospy.Publisher('msgTest', String, queue_size=10)
-#move_pub = rospy.Publisher('moveTest', MoveBaseGoal, queue_size=10)
-
-# rospy.init_node('move_bot', anonymous=True)
-# vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
-# rate = rospy.Rate(10)
-# move = Twist()
-
-
 class Movement:
     def __init__(self):
-        # self.goal = Point()
-        # self.goal.x = 0
-        # self.goal_y = 0
-
+        # Init robot x,y,theta
         self.cur_x = 0.0
         self.cur_y = 0.0
         self.theta = 0.0
 
+        # Error tolerance in meters and radians
         self.delta = 0.1
 
+        # Rotational speed
         self.rot_speed = 0.3
+        # Linear speed
         self.forward_speed = 0.6
-        # rospy.init_node("speed_controller")
+
 
         # create publisher and subscriber
         self.sub = rospy.Subscriber("/odom", Odometry,
@@ -55,80 +45,53 @@ class Movement:
         # set the rate
         self.r = rospy.Rate(4)
 
+        # Init laser scan dict
         self.moveScan = {}
 
-        # def set_goal_point(self, goal_x, goal_y):
-        #     self.goal.x = goal_x
-        #     self.goal.y = goal_y
+        # How close in meters an object can be before the robot stops for it
+        self.obstacleThreshold = 0.6
+
 
     def newOdom(self, msg):
+        # FUNCTION: Gets the current odometry of the robot
+        # INPUTS: odometry message
+        # OUTPUTS: current x,y,theta
+
         # get the current x and y position values for the robot
         self.cur_x = msg.pose.pose.position.x
         self.cur_y = msg.pose.pose.position.y
 
         rot_q = msg.pose.pose.orientation
+
+        # Get roll pitch and yaw from quaternion
         (roll, pitch, self.theta) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
+
         # rospy.loginfo("Current x-coordinate: " + str(self.cur_x))
         # rospy.loginfo("Current y-coordinate: " + str(self.cur_y))
         # rospy.loginfo("Current theta value: " + str(self.theta))
 
     def newLaserScan(self, msg):
+        # FUNCTION: Takes in the laser scan data in front of the robot
+        # INPUTS: laser scan message
+        # OUTPUTS: dictionary of the closest object detected on the front right and left
         self.moveScan = {
-            'fleft': min(min(msg.ranges[315:]), 0.6),
-            'fright': min(min(msg.ranges[:60]), 0.6)
+            'fleft': min(min(msg.ranges[315:]), self.obstacleThreshold),
+            'fright': min(min(msg.ranges[:60]), self.obstacleThreshold)
         }
 
-        # curGoal is of type Point()
-
-    def move_to_goal_point(self, curGoal):
-        reached = False
-        x = curGoal.x
-        y = curGoal.y
-        reached = False
-        rospy.loginfo("Inside move_to_goal_point()")
-        while not rospy.is_shutdown() and not reached:
-            inc_x = x - self.cur_x
-            inc_y = y - self.cur_y
-
-            rospy.loginfo("Incrementation of x: " + str(inc_x))
-            rospy.loginfo("Incrementation of y: " + str(inc_y))
-            rospy.loginfo("Current goal: " + str(curGoal))
-
-            angle_to_goal = atan2(inc_y, inc_x)
-            dist = math.sqrt(((x - self.cur_x) ** 2) + ((y - self.cur_y) ** 2))
-            # rospy.loginfo("Current distance to goal: " + str(dist))
-
-            # IS NOT UPDATING TO THE NEW ANGLE SEEN, SO IT IS STUCK AT 0.78
-            if dist <= self.delta:  # and abs(self.theta) <= self.delta * 0.5:
-                rospy.loginfo("Theta: " + str(self.theta))
-                rospy.loginfo("Robot is close enough to the participants. Stopping now!")
-                self.move.linear.x = 0.0
-                self.move.angular.z = 0.0
-                reached = True
-
-
-            elif abs(angle_to_goal - self.theta) > 0.3:  # self.delta:
-                if y > 0:
-                    self.move.linear.x = 0.0
-                    self.move.angular.z = self.rot_speed  # 0.25
-                    # do something
-                else:
-                    self.move.linear.x = 0.0
-                    self.move.angular.z = -1 * self.rot_speed  # -0.25
-
-            else:
-                self.move.linear.x = self.forward_speed  # 0.5
-                self.move.angular.z = 0.0
-
-            self.pub.publish(self.move)
-            self.r.sleep()
 
     def move_to_goal_avoidance(self, curGoal):
+        # FUNCTION: Moves robot from current position to goal position
+        #           while stopping if an obstacle enters its space
+        # INPUTS: Current goal as a Point() type
+        # OUTPUTS: self.move Twist() type with modified linear and angular velocities
         reached = False
         x = curGoal.x
         y = curGoal.y
         rospy.loginfo("Inside move_to_goal_point()")
         while not rospy.is_shutdown() and not reached:
+
+            # How far in x and y from goal
             inc_x = x - self.cur_x
             inc_y = y - self.cur_y
 
@@ -136,44 +99,49 @@ class Movement:
             rospy.loginfo("Incrementation of y: " + str(inc_y))
             rospy.loginfo("Current goal: " + str(curGoal))
 
+            # Get angle to the goal
             angle_to_goal = atan2(inc_y, inc_x)
             dist = math.sqrt(((x - self.cur_x) ** 2) + ((y - self.cur_y) ** 2))
 
-          
-            if dist <= self.delta:  # and abs(self.theta) <= self.delta * 0.5:
-                rospy.loginfo("Theta: " + str(self.theta))
-                rospy.loginfo("Robot is close enough to the participants. Stopping now!")
+            if dist <= self.delta:
+                # If distance to goal is less than the delta
+                rospy.loginfo("Robot is close enough to goal. Stopping now!")
+
+                # Set velocities to zero
                 self.move.linear.x = 0.0
                 self.move.angular.z = 0.0
+
+                # Set reached to True
                 reached = True
 
-
-            elif abs(angle_to_goal - self.theta) > 0.3:  # self.delta:
-                if y > 0:
-                    self.move.linear.x = 0.0
-                    self.move.angular.z = self.rot_speed  # 0.25
-                    # do something
-                else:
-                    self.move.linear.x = 0.0
-                    self.move.angular.z = -1 * self.rot_speed  # -0.25
+            elif abs(angle_to_goal - self.theta) > self.delta:
+                # If not at goal or pointed towards goal, turn to goal
+                self.correct_orientation(self,y)
 
             else:
-                if self.moveScan['fleft'] < 0.6 or self.moveScan['fright'] < 0.6:
+                # If pointed towards the goal and not at the goal
+                # If an obstacle is detected within threshold, stop
+                if self.moveScan['fleft'] < self.obstacleThreshold or self.moveScan['fright'] < self.obstacleThreshold:
                     rospy.loginfo("Fleft range is: " + str(self.moveScan['fleft']))
                     rospy.loginfo("Fright range is: " + str(self.moveScan['fleft']))
+
+                    # Set velocities to zero
                     self.move.linear.x = 0.0
                     self.move.angular.z = 0.0
                 else:
-                    self.move.linear.x = self.forward_speed  # 0.5
+                    # Move forward at set speed
+                    self.move.linear.x = self.forward_speed
                     self.move.angular.z = 0.0
 
+            # Publish velocities
             self.pub.publish(self.move)
+            # Sleep
             self.r.sleep()
 
     def return_to_starting_pos(self):
         # FUNCTION: returns robot to starting position if desired by user
         # INPUTS: terminal input y or n
-        # OUTPUTS:
+        # OUTPUTS: robot goes to its 0,0
 
         # Create point with starting goal of 0,0
         # 0,0 is where the robot was when ROS was started up on it
@@ -190,46 +158,23 @@ class Movement:
         else:
             rospy.loginfo("Returned to start position")
 
-
     def stop(self):
         # FUNCTION: stops robot
         self.move.linear.x = 0.0
         self.move.angular.z = 0.0
         self.pub.publish(self.move)
 
-    def correct_orientation(self, curGoal):
+    def correct_orientation(self, y):
         # FUNCTION: rotate towards goal if not pointed at the goal, or at the goal
         # INPUTS: current goal
         # OUTPUTS: robot rotation
 
-        # Set reached to false
-        reached = False
-        x = curGoal.x
-        y = curGoal.y
-        rospy.loginfo("Inside move_to_goal_point()")
-
-        # While not at the goal
-        while not rospy.is_shutdown() and not reached:
-            inc_x = x - self.cur_x
-            inc_y = y - self.cur_y
-
-            # Get angle to goal and distance to goal
-            angle_to_goal = atan2(inc_y, inc_x)
-            dist = math.sqrt(((x - self.cur_x)**2) + ((y - self.cur_y)**2))
-
-            if dist <= self.delta and abs(angle_to_goal- self.theta) > self.delta * 0.5:
-                rospy.loginfo("Theta: " + str(self.theta))
-                if y > self.cur_y:
-                     self.move.linear.x = 0.0
-                     self.move.angular.z = self.rot_speed * -0.5
-                else:
-                     self.move.linear.x = 0.0
-                     self.move.angular.z = self.rot_speed * 0.5
-            else:
-                 self.move.linear.x = 0.0
-                 self.move.angular.z = 0.0
-                 reached = True
-            self.pub.publish(self.move)
+        if y > self.cur_y:
+             self.move.linear.x = 0.0
+             self.move.angular.z = -self.rot_speed
+        else:
+             self.move.linear.x = 0.0
+             self.move.angular.z = self.rot_speed
 
     def final_formation_orientation(self,orientation):
         # FUNCTION: Rotate to a final specified orientation
