@@ -1,4 +1,19 @@
        FILE: local_plan.py
 DESCRIPTION: Moves robot from current position to goal position, stopping when an object is detected in front of it. 
-             Has two ROS subscribers that read odometry data and laser scan data.  
+             Has two ROS subscribers that read odometry data and laser scan data. Has one ROS publisher that publishes linear and angular veolcity.
+             Input required is the current goal as a Point() type.
   FUNCTIONS: 
+             - newOdom(msg):
+               FUNCTION: Callback function that gets the current odometry of the robot
+                 INPUTS: odometry message
+                OUTPUTS: current x,y,theta
+
+             - newLaserScan(msg)
+               FUNCTION: Callback function that gets the laser scan data in front of the robot
+                 INPUTS: laser scan message
+                OUTPUTS: dictionary of the closest object detected on the front right and left
+
+             - move_to_goal_avoidance(curGoal)
+               FUNCTION: Moves robot from current position to goal position while stopping if an obstacle enters its space
+                 INPUTS: Current goal as a Point() type
+                OUTPUTS: self.move Twist() type with modified linear and angular velocities
