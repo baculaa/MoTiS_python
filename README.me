@@ -17,3 +17,23 @@ DESCRIPTION: Moves robot from current position to goal position, stopping when a
                FUNCTION: Moves robot from current position to goal position while stopping if an obstacle enters its space
                  INPUTS: Current goal as a Point() type
                 OUTPUTS: self.move Twist() type with modified linear and angular velocities
+
+             - return_to_starting_pos()
+               FUNCTION: returns robot to starting position if desired by user
+                 INPUTS: terminal input y or n
+                OUTPUTS: robot goes to its 0,0
+
+             - stop()
+               FUNCTION: stops the robot
+                 INPUTS: none
+                OUTPUTS: robot stops
+
+             - correct_orientation(y):
+               FUNCTION: rotate towards goal if not pointed at the goal, or at the goal
+                 INPUTS: current goal y position
+                OUTPUTS: robot rotation
+
+             - final_formation_orientation(orientation):
+               FUNCTION: Rotate to a final specified orientation
+                 INPUTS: desired final orientation
+                OUTPUTS: rotates robot until at desired final orientation
