@@ -2,14 +2,8 @@
 
 import rospy
 import math
-import actionlib
-import socket
 
-
-from std_msgs.msg import String
 from nav_msgs.msg import Odometry
-from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
-from actionlib_msgs.msg import GoalStatus
 from geometry_msgs.msg import Pose, Point, Quaternion, Twist
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from sensor_msgs.msg import LaserScan
