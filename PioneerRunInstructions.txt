@@ -1,0 +1,18 @@
+1. Open one of the aadi computers
+       - Password is “password”
+2. Plug both USB cables into the back of the laptop
+       - Lidar should start spinning
+3. Turn on the robot with the switch on the left hand side
+4. Open a blank terminal on the laptop
+       - cd catkin_ws/src/pioneer_test
+       - ./run-pioneer-robot
+
+       This is the base demo of the robot to be able to send it commands with Rviz. It launches:
+        - RosAria (required)
+        - pioneer_sensors (required)
+        - nav_bundle (to run navstack, not required if using a different path planning method)
+        - pioneer_controller (not required if using own controller)
+        - Rviz (not required)
+
+You can create your own folder in the src directory and make a new version of run-pioneer-robot with your required launch files
+DO NOT CHANGE WHAT IS IN THE SRC FOLDER! JUST ADD YOUR OWN FOLDER WITHIN SRC AND EDIT THERE
