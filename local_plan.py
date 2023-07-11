@@ -110,7 +110,7 @@ class Movement:
 
             elif abs(angle_to_goal - self.theta) > self.delta:
                 # If not at goal or pointed towards goal, turn to goal
-                self.correct_orientation(self,y)
+                self.correct_orientation(y)
 
             else:
                 # If pointed towards the goal and not at the goal
