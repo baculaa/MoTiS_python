@@ -149,9 +149,12 @@ if __name__ == '__main__':
             rel_dir = RelativeDirection(offsets,x_ref,y_ref,direction)
             rel_dir_goals = rel_dir.get_rel_dir_goal()
 
-            # Layer proximity parameter
-            prox = raw_input('Proximity? (in meters)').lower()
-            proximity = Proximity(rel_dir_goals)
+            mover.move_to_goal_avoidance(rel_dir_goals)
+
+            # # Layer proximity parameter
+            # prox = raw_input('Proximity? (y/n)').lower()
+            # ('(in meters)').lower()
+            # proximity = Proximity(rel_dir_goals)
 
             # Layer geometry parameter
 
@@ -165,13 +168,17 @@ if __name__ == '__main__':
 
 
         while again == 'y':
-            waypoint = int(input('What waypoint would you like? Type Options: 1) towards, 2) away to dancefloor, 3) away to guard, 4) wall 1, 5) wall 2, 6) dance hero, 7) dance villain, 8) home: '))
-            initiator.get_into_formation(waypoint, l_speed, r_speed)
+            direction = raw_input('Relative Direction? (towards/away)').lower()
+            rel_dir = RelativeDirection(offsets, x_ref, y_ref, direction)
+            rel_dir_goals = rel_dir.get_rel_dir_goal()
+
+            mover.move_to_goal_avoidance(rel_dir_goals)
+
             again = raw_input('Another waypoint? (y/n): ').lower()
 
-        home = raw_input("return home? yes/no")
-        if home == 'yes':
-            initiator.reset_to_home()
+        home = raw_input("return home? y/n")
+        if home == 'y':
+            mover.return_to_starting_pos()
         else:
             pass
 
