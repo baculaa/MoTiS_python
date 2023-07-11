@@ -104,14 +104,8 @@ class Initiator:
         self.num_robots = 4
 
 
-    def reset_to_home(self):
-        goal = Point()
-        goal.x = 0
-        goal.y = 0
 
-        rospy.loginfo("Going home")
-        self.mover.return_to_starting_pos(goal)
-        self.mover.final_formation_orientation(0)
+
 
 
 
@@ -179,6 +173,7 @@ if __name__ == '__main__':
         home = raw_input("return home? y/n")
         if home == 'y':
             mover.return_to_starting_pos()
+            mover.final_formation_orientation(0)
         else:
             pass
 
