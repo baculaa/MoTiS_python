@@ -1,4 +1,5 @@
-This document is intended to detail the purpose and functions of local_plan.py (the local planner), which is used within motis_goals.py (the MoTiS goals software). This code takes in a desired robot goal (x,y,theta) and moves a robot from one place to another by publishing to the /cmd_vel topic on ROS. 
+This document is intended to detail the purpose and functions of local_plan.py (the local planner), which is used within motis_goals.py (the MoTiS goals software). 
+This code takes in a desired robot goal (x,y,theta) and moves a robot from one place to another by publishing to the /cmd_vel topic on ROS. 
 
 FILE: local_plan.py
 DESCRIPTION: Moves robot from current position to goal position, stopping when an object is detected in front of it. 
